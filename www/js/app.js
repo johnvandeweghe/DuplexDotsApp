@@ -1,4 +1,4 @@
-angular.module('duplexdots', ['ionic', 'duplexdots.controllers', 'duplexdots.directives'])
+angular.module('duplexdots', ['ionic', 'duplexdots.controllers', 'duplexdots.directives', 'duplexdots.services'])
 
 .run(function($ionicPlatform) {
   console.log('helloworld');

@@ -1,69 +1,46 @@
-angular.module('duplexdots.directives', []).
-directive("duplexdotscanvas", function(){
+angular.module('duplexdots.directives', ['duplexdots.services']).
+directive("duplexdotscanvas", ['$compile', 'Objects', function($compile, Objects){
   return {
     restrict: "A",
-    link: function(scope, element){
+    link: function($scope, element){
       console.log(element.width, element.height);
       var ctx = element[0].getContext('2d');
       ctx.canvas.width = window.innerWidth;
       ctx.canvas.height = window.innerHeight;
 
-      // variable that decides if something should be drawn on mousemove
-      var drawing = false;
-
-      // the last coordinates before the current move
-      var lastX;
-      var lastY;
-
       element.bind('touchstart', function(event){
-        console.log('start');
-        lastX = event.changedTouches[0].pageX;
-        lastY = event.changedTouches[0].pageY;
-
-        // begins new line
-        ctx.beginPath();
-
-        drawing = true;
+        fireMove(event.changedTouches[0].pageX, event.changedTouches[0].pageY);
       });
       element.bind('touchmove', function(event){
-        console.log('move');
-        if(drawing){
-          // get current mouse position
-          for(var t in event.changedTouches) {
-            currentX = event.changedTouches[t].pageX;
-            currentY = event.changedTouches[t].pageY;
-            draw(lastX, lastY, currentX, currentY);
-
-            // set current coordinates to last one
-            lastX = currentX;
-            lastY = currentY;
+        for(var t in event.changedTouches) {
+          var x = event.changedTouches[t].pageX;
+          if(x) {
+            fireMove(x, event.changedTouches[t].pageY);
           }
         }
-
       });
       element.bind('touchend', function(event){
-
-        console.log('end');
-        // stop drawing
-        drawing = false;
       });
 
-      // canvas reset
-      function reset(){
-        element[0].width = element[0].width;
+      var start = null;
+
+      function step(timestamp) {
+        ctx.clearRect(0, 0, ctx.canvas.width, ctx.canvas.height);
+        if (!start) start = timestamp;
+        var progress = timestamp - start;
+        var objects = Objects.all();
+        for(var o in objects){
+          objects[o].tick();
+          objects[o].draw(ctx);
+        }
+        window.requestAnimationFrame(step);
       }
 
-      function draw(lX, lY, cX, cY){
-        // line from
-        ctx.moveTo(lX,lY);
-        // to
-        ctx.lineTo(cX,cY);
-        // color
-        ctx.strokeStyle = "#4bf";
-        // draw it
-        ctx.stroke();
+      window.requestAnimationFrame(step);
+      function fireMove(x, y){
+        $scope.$broadcast('duplexdots.move', {x: x, y: y});
       }
 
     }
   };
-});
+}]);
