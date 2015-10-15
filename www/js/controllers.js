@@ -6,26 +6,13 @@ angular.module('duplexdots.controllers', [])
   // To listen for when this page is active (for example, to refresh data),
   // listen for the $ionicView.enter event:
   //
-  var me = {
+  var me = angular.extend({
     id: Math.round(Math.random()*1000),
     x: 0,
     y: 0,
     dx: 0,
-    dy: 0,
-    draw: function(context){
-      context.beginPath();
-      context.arc(this.dx, this.dy, 10, 0, 2 * Math.PI, false);
-      context.fillStyle = 'green';
-      context.fill();
-      context.lineWidth = 2;
-      context.strokeStyle = '#003300';
-      context.stroke();
-    },
-    tick: function(){
-      this.dx = this.x;
-      this.dy = this.y;
-    }
-  };
+    dy: 0
+  }, Objects.baseObject);
   console.log(Objects);
   Objects.add(me);
   console.log(me);
@@ -35,18 +22,16 @@ angular.module('duplexdots.controllers', [])
   $scope.$on('duplexdots.move', function(e, pos){
     me.x = pos.x;
     me.y = pos.y;
+    Socket.send(me);
   });
-  $scope.$on('duplexdots.moveOther', function(e, object){
+
+  Socket.addOnMessageHandler(function(event){
+    var object = JSON.parse(event.data);
     if(o = Objects.get(object.id)){
       o.x = object.x;
       o.y = object.y;
     } else {
-      Objects.add(object);
+      Objects.add(angular.extend(object, Objects.baseObject));
     }
   });
-
-  Socket.addOnMessageHandler(function(event){
-    $scope.$broadcast('duplexdots.moveOther', data);
-  });
-    console.log('test');
 }]);

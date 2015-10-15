@@ -20,18 +20,33 @@ angular.module('duplexdots.services', [])
     },
     add: function(object) {
       objects.push(object);
+    },
+    baseObject: {
+      draw: function(context){
+        context.beginPath();
+        context.arc(this.dx, this.dy, 10, 0, 2 * Math.PI, false);
+        context.fillStyle = 'green';
+        context.fill();
+        context.lineWidth = 2;
+        context.strokeStyle = '#003300';
+        context.stroke();
+      },
+      tick: function(){
+        this.dx = this.x;
+        this.dy = this.y;
+      }
     }
   };
 }).factory('Socket', function(){
-    var ws = new WebSocket("ws://localhost");
+    var ws = new WebSocket("ws://04f75e9f.ngrok.io");
 
     var handlers = [];
 
-    ws.onmessage(function(event){
+    ws.onmessage = function(event){
       for(var h in handlers){
         handlers[h](event);
       }
-    });
+    };
 
     return {
       send: function(data){
